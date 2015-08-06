@@ -4,8 +4,14 @@ class Thrie < Hash
   end
 
   def add word
-    feed word.chars
+    hashify word.chars
   end
+
+  def valid? word
+    hashusure? word.chars
+  end
+
+  protected
 
   def end_of_word
     m = Thrie.new
@@ -13,22 +19,21 @@ class Thrie < Hash
     m
   end
 
-  def feed arr
+  def hashify arr
     return end_of_word if arr.empty?
     car, cdr = [arr.shift, arr]
     self[car] ||= Thrie.new
-    self[car] = self[car].feed cdr
+    self[car] = self[car].hashify cdr
     self
   end
 
-  def exist? arr
+  def hashusure? arr
     car, cdr = [arr.shift, arr]
     return false unless self[car]
-
     if self[car].keys.include?("*") && cdr==[]
       true
     else
-      self[car].exist? cdr
+      self[car].hashusure? cdr
     end
   end
 end

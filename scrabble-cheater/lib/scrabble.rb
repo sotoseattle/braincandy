@@ -12,8 +12,9 @@ class Scrabble
 
   def longest_word(tiles)
     (2..(tiles.size)).to_a.reverse.each do |i|
-      tiles.permutation(i).each do |sub_a|
-        return sub_a.join if @dic.exist?(sub_a.dup)
+      tiles.permutation(i).each do |scramble|
+        utterance = scramble.join
+        return utterance if @dic.valid?(utterance)
       end
     end
   end

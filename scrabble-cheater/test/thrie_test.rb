@@ -43,22 +43,22 @@ class ThrieTest < Minitest::Test
   end
 
   def test_find_bs_word
-    refute @hh.exist? 'camioneto'.chars
+    refute @hh.valid? 'camioneto'
   end
 
   def test_find_bs_word
-    refute @hh.exist? 'amioneta'.chars
-    refute @hh.exist? 'cami'.chars
-    refute @hh.exist? 'mi'.chars
+    refute @hh.valid? 'amioneta'
+    refute @hh.valid? 'cami'
+    refute @hh.valid? 'mi'
   end
 
   def test_find_existing_word
-    assert @hh.exist? 'camioneta'.chars
+    assert @hh.valid? 'camioneta'
   end
 
   def test_find_existing_word
-    assert @hh.exist? 'camisa'.chars
-    assert @hh.exist? 'camiseta'.chars
+    assert @hh.valid? 'camisa'
+    assert @hh.valid? 'camiseta'
   end
 end
 
