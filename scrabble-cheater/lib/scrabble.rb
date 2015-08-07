@@ -7,7 +7,7 @@ class Scrabble
     @dic = Thrie.new
     File.readlines("/usr/share/dict/words")
         .map(&:chomp).map(&:downcase).uniq
-        .each { |w| @dic.add(w) if w =~ /[a-z]+/ }
+        .each { |w| @dic.add(w) if w =~ /^[a-z]+$/ }
   end
 
   def longest_word(tiles)
@@ -18,9 +18,5 @@ class Scrabble
       end
     end
   end
-
 end
-
-sc = Scrabble.new
-p sc.longest_word 'ptteoao'.chars
 
