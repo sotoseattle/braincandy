@@ -18,3 +18,32 @@ newlines, and downcases them.
 ```ruby
 words = File.readlines("/usr/share/dict/words").map(&:chomp).map(&:downcase)
 ```
+
+## Cheat a Bit!
+
+My first approach was to create a trie with hashes and load the 'words' into it.
+
+Then the longest word is a simple exercise of going through all the permutations of the chosen tiles and trying them all on the trie until we find an existing word. The search of permutations goes from the longest to shortest word, and the method returns the first viable solution (longest word).
+
+```ruby
+sc = Scrabble.new
+p sc.longest_word 'ptteoao'.chars
+# => 'potate'
+```
+
+## Cheat in Style!
+
+If we are going to cheat, we should do it in style. With a bold face. Con un par.
+
+We should be able to come up with a word, that may not exist, but that actually sounds like it could. It is then up to you to lie your way through and convince your opponents that the word is valid, real and makes sense (given whatever crazy definition you can come up with).
+
+The method should be called 'bullshit!' and will take into account the probabilities of certain letters being next to others. The combination with highest probability wins the day and is returned by the bullshitting method.
+
+```ruby
+sc = Scrabble.new
+p sc.bullshit! 'ptteeaa'.chars
+# => 'teapeat' (residue that collects at the bottom of beer vats during fermentation)
+```
+
+to be developed...
+
