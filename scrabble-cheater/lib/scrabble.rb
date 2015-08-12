@@ -6,8 +6,8 @@ class Scrabble
   def initialize
     @dic = Thrie.new
     File.readlines("/usr/share/dict/words")
-        .map(&:chomp).map(&:downcase).uniq
-        .each { |w| @dic.add(w) if w =~ /^[a-z]+$/ }
+        .map(&:chomp).map(&:downcase)
+        .each { |w| @dic.add(w) if w.size < 8 }
   end
 
   def longest_word(tiles)

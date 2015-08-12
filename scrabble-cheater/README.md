@@ -31,7 +31,36 @@ p sc.longest_word 'ptteoao'.chars
 # => 'potate'
 ```
 
-## Cheat in Style!
+Time: 0.6 secs
+
+## Super Fast
+
+My second approach was to go simple. No trie, no nothing (almost), only 15 lines.
+
+```ruby
+class ScrabFast
+  def initialize
+    @words = File.readlines("/usr/share/dict/words")
+                 .map(&:chomp).map(&:downcase)
+                 .select { |w| w.size < 8 }
+  end
+
+  def fetch(tiles)
+    tiles.size.downto(2).each do |i|
+      sol = @words & tiles.permutation(i).map(&:join)
+      return sol if sol.size > 0
+    end
+  end
+end
+
+sf = ScrabFast.new
+p sf.fetch %w(p o t a t o w)
+# => 'potato'
+```
+
+Disgustingly fast! 0.2 secs
+
+## Cheat in Style! (work in progress)
 
 If we are going to cheat, we should do it in style. With a bold face. Con un par.
 
