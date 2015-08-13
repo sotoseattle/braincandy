@@ -1,15 +1,15 @@
 require 'test_helper'
 require 'tempfile'
 
-class GraderBasicTest < Minitest::Test
-  include GraderBasic
+class GraderArrayTest < Minitest::Test
+  include GraderArray
   def test_small_file
-    assert_equal 'ABDCAACB', GraderBasic.cheat('test/input_1.txt')
+    assert_equal 'ABDCAACB', GraderArray.cheat('test/input_1.txt')
   end
 
   def test_long_file
     assert_equal 'BACBCAAACBCAAABDABBBBDBCBDAABDADDACBAACADDBAABABCB',
-                 GraderBasic.cheat('test/input_2.txt')
+                 GraderArray.cheat('test/input_2.txt')
   end
 end
 
