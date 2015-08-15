@@ -25,3 +25,15 @@ class GraderHashyTest < Minitest::Test
   end
 end
 
+class GraderHemingwayTest < Minitest::Test
+  include GraderHemingway
+  def test_it_works
+    assert_equal 'ABDCAACB',  GraderHemingway.generate_exam_key('test/input_1.txt')
+  end
+
+  def test_long_file
+    assert_equal 'BACBCAAACBCAAABDABBBBDBCBDAABDADDACBAACADDBAABABCB',
+                 GraderHemingway.generate_exam_key('test/input_2.txt')
+  end
+end
+

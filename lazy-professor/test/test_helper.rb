@@ -8,5 +8,5 @@ Minitest::Reporters.use! [Minitest::Reporters::DefaultReporter.new(reporter_opti
 
 require_relative './../lib/grader_array.rb'
 require_relative './../lib/grader_hashy.rb'
-
+require_relative './../lib/grader_hemingway.rb'
 

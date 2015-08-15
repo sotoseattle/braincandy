@@ -24,6 +24,30 @@ Output:
 
 [test.txt](https://github.com/SeaRbSg/braincandy/blob/master/lazy-professor/test.txt)
 
+## Solution 0. Hemingway
+
+Trying to Hemingway the s#^t out of it (to make it expressive).
+
+I also use both group_by and max_by, because.... why not?
+
+```ruby
+def self.generate_exam_key filename
+  data_batched_by_student = load_all_exams_from filename
+
+  data_batched_by_answer  = data_batched_by_student.transpose
+
+  data_batched_by_answer.map {|answers| most_frequent_letter_in answers}.join
+end
+
+def self.load_all_exams_from filename
+  File.read(filename).split("\n").map(&:chars)
+end
+
+def self.most_frequent_letter_in answers
+  answers.group_by(&:to_s).values.max_by(&:size).first
+end
+```
+
 ## Solution 1. Arrays & Streamy
 
 For large files, we start reading the file and we count/compute the answers as we go.
