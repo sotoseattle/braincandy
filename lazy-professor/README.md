@@ -2,9 +2,12 @@
 
 ## The Quizz
 
+=======
 I am the laziest professor ever. I've given a multiple choice test (A-D are valid answers) but I lost my test key. I'll assume that whatever answer was most popular for a question is the correct answer.
 
 I've included a file that contains the students quiz answers. Each row represents one student. Write code that figures out the most popular answer to each question and then prints out the key.
+
+Example:
 
 Given:
 
@@ -89,3 +92,5 @@ exam_data.map do |answers|
 end.join
 ```
 
+=======
+[test.txt](https://github.com/SeaRbSg/braincandy/blob/master/lazy-professor/test.txt)
