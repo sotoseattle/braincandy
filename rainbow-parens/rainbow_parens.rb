@@ -22,6 +22,10 @@ class BracketTracker < Array
     self.last[:brack]
   end
 
+  def current_color
+    self.last[:color_idx]
+  end
+
   def open_bracket c
     col = @color.next
     self << {brack: c, color_idx: col}
@@ -43,7 +47,7 @@ class Rainbowizer
   attr_accessor :text_mode
 
   BRACKS = { ")" => "(", "}" => "{", "]" => "[" }
-  OPENER = /\(|\{|\[/
+  OPENER = /\(|\{|\[|"|'/
   CLOSER = /\)|\}|\]/
   QUOTES = /"|'/
 
@@ -51,47 +55,41 @@ class Rainbowizer
     @tracker = BracketTracker.new
   end
 
-  def analyze_quoted_text char
-    if text_mode
-      if char == @tracker.current_bracket
-        @tracker.close_bracket
-        self.text_mode = false
-      else
-        ignore char
-      end
-    else
-      @tracker.open_bracket(char)
-      self.text_mode = true
+  def paint char, color_code
+    color_code ? "\e[#{color_code}m#{char}\e[0m" : char
+  end
+
+  def stringify char
+    text_color = @tracker.current_color
+    if char == @tracker.current_bracket
+      self.text_mode = false
+      @tracker.close_bracket
     end
+    paint char, text_color
   end
 
   def rainbowfy char
-    new_color =
-      case char
-      when OPENER
-        @tracker.open_bracket(char)
-      when CLOSER
-        fail UnmatchedParensException unless @tracker.current_bracket == BRACKS[char]
-        @tracker.close_bracket
-      end
+    new_color = case char
+                when OPENER
+                  self.text_mode = true if char =~ QUOTES
+                  @tracker.open_bracket(char)
+                when CLOSER
+                  fail UnmatchedParensException unless @tracker.current_bracket == BRACKS[char]
+                  @tracker.close_bracket
+                end
 
-    new_color ? "\e[#{new_color}m#{char}\e[0m" : char
-  end
-
-  def ignore char
-    char
+    paint char, new_color
   end
 
   def colorize input_string
     self.text_mode = false
-    output = input_string.chars
 
-    output.map! do |char|
-      if char =~ QUOTES
-        analyze_quoted_text(char)
+    output = input_string.chars.map do |char|
+      if text_mode
+        stringify char
+      else
+        rainbowfy char
       end
-
-      text_mode ? ignore(char) : rainbowfy(char)
     end
 
     fail UnmatchedParensException unless @tracker.all_brackets_closed?
