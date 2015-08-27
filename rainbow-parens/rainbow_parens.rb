@@ -9,13 +9,13 @@ class ColorWheel < Array
   def next
     @indx += 1
     @indx = 0 if @indx == @size
-    return @indx + OFFSET_COLOR
+    @indx + OFFSET_COLOR
   end
 end
 
 class BracketTracker < Array
   def initialize
-    @rainbow = ColorWheel.new
+    @color = ColorWheel.new
   end
 
   def current_bracket
@@ -23,43 +23,24 @@ class BracketTracker < Array
   end
 
   def open_bracket c
-    self << {brack: c, color_idx: @rainbow.next}
+    col = @color.next
+    self << {brack: c, color_idx: col}
+    col
   end
 
-  def live_color
-    self.last[:color_idx]
+  def close_bracket
+    col = self.last[:color_idx]
+    self.pop
+    col
   end
 
   alias_method :all_brackets_closed?, :empty?
-  alias_method :close_bracket,        :pop
-end
-
-class Flag
-  attr_reader :mode
-
-  def initialize
-    @mode = false
-  end
-
-  def flip
-    @mode = (@mode ? false : true)
-  end
-
-  def reset
-    @mode = false
-  end
-end
-
-class String
-  def colorize(color)
-    "\e[#{color}m#{self}\e[0m"
-  end
 end
 
 class UnmatchedParensException < ArgumentError; end
 
 class Rainbowizer
-  attr_accessor :we_are_in_text
+  attr_accessor :text_mode
 
   BRACKS = { ")" => "(", "}" => "{", "]" => "[" }
   OPENER = /\(|\{|\[/
@@ -68,44 +49,49 @@ class Rainbowizer
 
   def initialize
     @tracker = BracketTracker.new
-    @we_are_in_text= Flag.new
-  end
-
-  def rainbowfy char
-    case char
-    when OPENER
-      @tracker.open_bracket(char)
-      char = char.colorize(@tracker.live_color)
-    when CLOSER
-      if @tracker.current_bracket == BRACKS[char]
-        char = char.colorize(@tracker.live_color)
-        @tracker.close_bracket
-      else
-        fail UnmatchedParensException
-      end
-    end
-    char
   end
 
   def analyze_quoted_text char
-    if @we_are_in_text.mode == false
-      @tracker.open_bracket(char)
-      @we_are_in_text.flip
-    else
-      if @tracker.current_bracket == char
+    if text_mode
+      if char == @tracker.current_bracket
         @tracker.close_bracket
-        @we_are_in_text.flip
+        self.text_mode = false
+      else
+        ignore char
       end
+    else
+      @tracker.open_bracket(char)
+      self.text_mode = true
     end
   end
 
+  def rainbowfy char
+    new_color =
+      case char
+      when OPENER
+        @tracker.open_bracket(char)
+      when CLOSER
+        fail UnmatchedParensException unless @tracker.current_bracket == BRACKS[char]
+        @tracker.close_bracket
+      end
+
+    new_color ? "\e[#{new_color}m#{char}\e[0m" : char
+  end
+
+  def ignore char
+    char
+  end
+
   def colorize input_string
-    @we_are_in_text.reset
+    self.text_mode = false
     output = input_string.chars
 
     output.map! do |char|
-      analyze_quoted_text(char) if char =~ QUOTES
-      we_are_in_text.mode ? char : rainbowfy(char)
+      if char =~ QUOTES
+        analyze_quoted_text(char)
+      end
+
+      text_mode ? ignore(char) : rainbowfy(char)
     end
 
     fail UnmatchedParensException unless @tracker.all_brackets_closed?
