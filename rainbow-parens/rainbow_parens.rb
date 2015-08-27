@@ -27,15 +27,19 @@ class BracketTracker < Array
   end
 
   def open_bracket c
-    col = @color.next
-    self << {brack: c, color_idx: col}
-    col
+    color = @color.next
+    self << {brack: c, color_idx: color}
+    color
   end
 
   def close_bracket
-    col = self.last[:color_idx]
+    color = current_color
     self.pop
-    col
+    color
+  end
+
+  def matches char
+    current_bracket == char
   end
 
   alias_method :all_brackets_closed?, :empty?
@@ -47,7 +51,7 @@ class Rainbowizer
   attr_accessor :text_mode
 
   BRACKS = { ")" => "(", "}" => "{", "]" => "[" }
-  OPENER = /\(|\{|\[|"|'/
+  OPENER = /\(|\{|\[/
   CLOSER = /\)|\}|\]/
   QUOTES = /"|'/
 
@@ -55,41 +59,40 @@ class Rainbowizer
     @tracker = BracketTracker.new
   end
 
-  def paint char, color_code
-    color_code ? "\e[#{color_code}m#{char}\e[0m" : char
+  def paint char, color
+    color ? "\e[#{color}m#{char}\e[0m" : char
   end
 
   def stringify char
     text_color = @tracker.current_color
+
     if char == @tracker.current_bracket
       self.text_mode = false
       @tracker.close_bracket
     end
-    paint char, text_color
+
+    text_color
   end
 
   def rainbowfy char
-    new_color = case char
-                when OPENER
-                  self.text_mode = true if char =~ QUOTES
-                  @tracker.open_bracket(char)
-                when CLOSER
-                  fail UnmatchedParensException unless @tracker.current_bracket == BRACKS[char]
-                  @tracker.close_bracket
-                end
-
-    paint char, new_color
+    case char
+    when QUOTES
+      self.text_mode = true
+      @tracker.open_bracket(char)
+    when OPENER
+      @tracker.open_bracket(char)
+    when CLOSER
+      fail UnmatchedParensException unless @tracker.matches BRACKS[char]
+      @tracker.close_bracket
+    end
   end
 
   def colorize input_string
     self.text_mode = false
 
-    output = input_string.chars.map do |char|
-      if text_mode
-        stringify char
-      else
-        rainbowfy char
-      end
+    output = input_string.chars.map! do |char|
+      color = ( text_mode ? stringify(char) : rainbowfy(char) )
+      paint char, color
     end
 
     fail UnmatchedParensException unless @tracker.all_brackets_closed?
