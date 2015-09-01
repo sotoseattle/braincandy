@@ -53,19 +53,17 @@ class Polygnome < Array
 end
 
 class Bouncer < Graphics::Body
-  M = 100
-
   attr_reader :x, :y, :a, :m, :r, :s
   attr_accessor :last
 
-  def initialize w
-    super
+  def initialize w, magnitude
+    super w
     @s = w
     @r = w.r
     @x = rand(w.screen.w/4) + w.r
     @y = rand(w.screen.h/4) + w.r
     @a = random_angle
-    @m = M
+    @m = magnitude
     @last = V[@x, @y]
   end
 
@@ -119,6 +117,8 @@ end
 
 class FreakyPi < Graphics::Simulation
   RADIO = 400
+  BALLS =  1   #  2  30   100
+  MAGND = 10   # 10  10   50
 
   attr_reader :r, :ball, :poly
 
@@ -126,18 +126,19 @@ class FreakyPi < Graphics::Simulation
     @r = RADIO
     super @r * 2, @r * 2
     @poly = Polygnome.new @r, @r, self
-    @ball = Bouncer.new self
+    @balls = []
+    BALLS.times { @balls << Bouncer.new(self, MAGND) }
   end
 
   def draw n
     clear if @poly.size > 2
     circle @r, @r, @r, :green
-    @ball.draw
+    @balls.each &:draw
     @poly.draw
   end
 
   def update n
-    @ball.update
+    @balls.each &:update
   end
 end
 
