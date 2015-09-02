@@ -1,24 +1,22 @@
 require 'graphics'
 require 'graphics/trail'
-require 'pry'
 
 class BasicBouncer < Graphics::Simulation
   SCREEN_LENGTH = 800
-
-  attr_reader :ball
+  N_BALLS = 10
 
   def initialize
     super SCREEN_LENGTH, SCREEN_LENGTH
-    @ball = Ball.new self
+    @balls = Array.new(N_BALLS) { Ball.new(self) }
   end
 
   def draw n
     clear
-    @ball.draw
+    @balls.each &:draw
   end
 
   def update n
-    @ball.update
+    @balls.each &:update
   end
 end
 
@@ -33,7 +31,7 @@ class Ball < Graphics::Body
     super w
     self.a = 45.0
     self.m = M
-    self.trail = Graphics::Trail.new(w, 6, color = :red)
+    self.trail = Graphics::Trail.new(w, 6, :red)
   end
 
   def update
