@@ -29,15 +29,14 @@ class Ball < Graphics::Body
   def initialize w
     super w
 
-    self.x = rand(w.w)
-    self.y = rand(w.h)
     self.a = rand(360)   # <===========================
     self.m = rand(9) + 1 # <===========================
     self.trail = Graphics::Trail.new(w, 6, color = :red)
   end
 
   def update
-    move_by self.a, self.m
+    move
+    bounce
     trail << self
   end
 
