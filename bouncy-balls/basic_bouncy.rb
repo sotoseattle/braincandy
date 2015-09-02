@@ -9,7 +9,7 @@ class BasicBouncer < Graphics::Simulation
 
   def initialize
     super SCREEN_LENGTH, SCREEN_LENGTH
-    @ball = Ball.new(self)
+    @ball = Ball.new self
   end
 
   def draw n
@@ -23,18 +23,21 @@ class BasicBouncer < Graphics::Simulation
 end
 
 class Ball < Graphics::Body
-  attr_reader :x, :y, :a, :m
+  M = 10
+  G = V.new(0, -1)
+
+  attr_reader :x, :y, :a, :m, :g
   attr_accessor :trail
 
   def initialize w
     super w
-
-    self.a = rand(360)   # <===========================
-    self.m = rand(9) + 1 # <===========================
+    self.a = 45.0
+    self.m = M
     self.trail = Graphics::Trail.new(w, 6, color = :red)
   end
 
   def update
+    self.velocity += G
     move
     bounce
     trail << self
