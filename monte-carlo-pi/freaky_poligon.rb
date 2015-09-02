@@ -1,6 +1,6 @@
 require 'graphics'
-
-srand 42
+require 'graphics/trail'
+require 'pry'
 
 class Polygnome < Array
   attr_reader :origin, :r, :s
@@ -54,17 +54,17 @@ end
 
 class Bouncer < Graphics::Body
   attr_reader :x, :y, :a, :m, :r, :s
-  attr_accessor :last
+  attr_accessor :trail
 
   def initialize w, magnitude
     super w
+    self.trail = Graphics::Trail.new(w, 6, color = :red)
     @s = w
     @r = w.r
     @x = rand(w.screen.w/4) + w.r
     @y = rand(w.screen.h/4) + w.r
     @a = random_angle
     @m = magnitude
-    @last = V[@x, @y]
   end
 
   def target_point
@@ -98,26 +98,24 @@ class Bouncer < Graphics::Body
   end
 
   def draw
-    @s.line last.x, last.y, x, y, :red
+    trail.draw
   end
 
   def update
-    self.last = position
     t = target_point
     if outside_circle? t
       t = intersection_circle_and line_to(t)
       turn (160 + rand(15) - 15)
-      self.position = t
       @s.poly.add t
-    else
-      move
     end
+    self.position = t
+    trail << self
   end
 end
 
 class FreakyPi < Graphics::Simulation
   RADIO = 400
-  BALLS =  1   #  2  30   100
+  BALLS = 10   #  2  30   100
   MAGND = 10   # 10  10   50
 
   attr_reader :r, :ball, :poly
@@ -131,7 +129,7 @@ class FreakyPi < Graphics::Simulation
   end
 
   def draw n
-    clear if @poly.size > 2
+    clear
     circle @r, @r, @r, :green
     @balls.each &:draw
     @poly.draw
