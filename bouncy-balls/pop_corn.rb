@@ -8,8 +8,8 @@ require 'graphics/trail'
 
 class PopCorn < Graphics::Simulation
   SCREEN_LENGTH = 700
-  N_BALLS = 500
-  N_COLORS = 50
+  N_BALLS = 20
+  N_COLORS = 30
 
   def initialize
     super SCREEN_LENGTH, SCREEN_LENGTH, 16
@@ -57,7 +57,8 @@ class Ball < Graphics::Body
 
   def update
     if y == 0
-      self.velocity -= G*3
+      oomph = a.between?(80, 110) ? 5 : 3
+      self.velocity -= G * oomph
       self.a = 90 + rand(45) - 45/2
     else
       self.velocity += G
@@ -68,6 +69,7 @@ class Ball < Graphics::Body
   end
 
   def draw
+    w.circle x, y+15, 15, trail.c[0].to_sym, fill = true
     trail.draw
   end
 end
