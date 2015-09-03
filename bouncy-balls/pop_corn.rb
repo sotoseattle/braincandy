@@ -15,11 +15,12 @@ class PopCorn < Graphics::Simulation
     super SCREEN_LENGTH, SCREEN_LENGTH, 16
     make_rainbowies
     @balls = Array.new(N_BALLS) { Ball.new(self, "#{rand(N_COLORS)}") }
+    @flame = image("./images/mcol-flames.png")
   end
 
   def draw n
     clear
-    (1..5).each {|y| line 0, y, w, y, :red }
+    (10..w).step(10+rand(2)*10).each{|x| blit(@flame, x, 10, 0) }
     @balls.each &:draw
   end
 
@@ -44,7 +45,7 @@ end
 
 class Ball < Graphics::Body
   M = 30
-  G = V[0, -1]
+  G = V[0, -1.0]
 
   attr_accessor :trail, :c
 
