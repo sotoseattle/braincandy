@@ -8,14 +8,20 @@ require 'graphics/trail'
 
 class PopCorn < Graphics::Simulation
   SCREEN_LENGTH = 700
-  N_BALLS = 20
+  N_BALLS = 5
   N_COLORS = 30
+
+  attr_reader :pop, :marquee_colors
 
   def initialize
     super SCREEN_LENGTH, SCREEN_LENGTH, 16
+    SDL::Mixer.open
+    SDL::Mixer.allocateChannels(N_BALLS)
+
     make_rainbowies
     @balls = Array.new(N_BALLS) { Ball.new(self, "#{rand(N_COLORS)}") }
-    @flame = image("./images/mcol-flames.png")
+    @flame = image("./atrezzo/mcol-flames.png")
+    @pop = SDL::Mixer::Wave.load("./atrezzo/pop.wav")
   end
 
   def draw n
@@ -44,33 +50,34 @@ class PopCorn < Graphics::Simulation
 end
 
 class Ball < Graphics::Body
-  M = 30
+  R = 15
   G = V[0, -1.0]
 
   attr_accessor :trail, :c
 
   def initialize w, c
     super w
-    self.y = w.h * 0.80
+    self.y = w.h - R
     self.a = self.m = 0
     self.trail = Graphics::Trail.new(w, 6, c)
   end
 
   def update
+    move
+    trail << self
+    SDL::Mixer.playChannel(-1, w.pop, 0) if y <= 0
+
+    bounce
     if y == 0
-      oomph = a.between?(80, 110) ? 5 : 3
-      self.velocity -= G * oomph
-      self.a = 90 + rand(45) - 45/2
+      self.a += random_turn(45)
+      self.velocity -= G * 5
     else
       self.velocity += G
     end
-
-    move && bounce
-    trail << self
   end
 
   def draw
-    w.circle x, y+15, 15, trail.c[0].to_sym, fill = true
+    w.circle x, y+R, R, trail.c[0].to_sym, fill = true
     trail.draw
   end
 end
