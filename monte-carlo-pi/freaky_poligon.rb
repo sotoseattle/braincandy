@@ -1,6 +1,7 @@
-require 'graphics'
-require 'graphics/trail'
-require 'pry'
+require "graphics"
+require "graphics/trail"
+
+srand 42
 
 class Polygnome < Array
   attr_reader :origin, :r, :s
