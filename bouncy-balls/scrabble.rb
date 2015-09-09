@@ -3,7 +3,7 @@ require 'graphics/trail'
 
 class ScrabbleTrainer < Graphics::Simulation
   DISPLAY = 700
-  TIMEOUT = 20
+  TIMEOUT = 30
   N_CHARS = 8      # more than 8 is too slow
   COLORES = 30
 
@@ -44,17 +44,17 @@ class ScrabbleTrainer < Graphics::Simulation
     fq = 2.4
     ph1, ph2, ph3 = 0, 2, 4
     (0..COLORES).each do |i|
-      r = Math.sin(fq*i + ph1) * 255;
-      g = Math.sin(fq*i + ph2) * 255;
-      b = Math.sin(fq*i + ph3) * 255;
+      r = Math.sin(fq*i + ph1) * 230 + 25;
+      g = Math.sin(fq*i + ph2) * 230 + 25;
+      b = Math.sin(fq*i + ph3) * 230 + 25;
       (0..99).each { |n| register_color("#{i}#{n}".to_sym, r, g, b) }
     end
   end
 end
 
 class Tile < Graphics::Body
-  GRVTY = V[0, -0.01]
-  BOOST =70
+  GRVTY = V[0, -0.02]
+  BOOST = 30
 
   attr_accessor :i, :solution
   attr_reader :letter, :lw, :lh
