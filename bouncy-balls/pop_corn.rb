@@ -15,13 +15,12 @@ class PopCorn < Graphics::Simulation
 
   def initialize
     super SCREEN_LENGTH, SCREEN_LENGTH, 16
-    SDL::Mixer.open
-    SDL::Mixer.allocateChannels(N_BALLS)
+    open_mixer N_BALLS
 
     make_rainbowies
     @balls = Array.new(N_BALLS) { Ball.new(self, "#{rand(N_COLORS)}") }
-    @flame = image("./atrezzo/mcol-flames.png")
-    @pop = SDL::Mixer::Wave.load("./atrezzo/pop.wav")
+    @flame = image "./atrezzo/mcol-flames.png"
+    @pop   = audio "./atrezzo/pop.wav"
   end
 
   def draw n
@@ -65,7 +64,7 @@ class Ball < Graphics::Body
   def update
     move
     trail << self
-    SDL::Mixer.playChannel(-1, w.pop, 0) if y <= 0
+    w.pop.play if y <= 0
 
     bounce
     if y == 0

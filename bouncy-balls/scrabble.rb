@@ -63,7 +63,7 @@ class Tile < Graphics::Body
     super w
     self.w = w
     @letter = random_letter
-    @lw, @lh = w.text_size letter
+    @lw, @lh = 10, 20
     self.y = w.h - lw
 
     self.a = self.m = 0
@@ -88,7 +88,7 @@ class Tile < Graphics::Body
   end
 
   def draw
-    w.screen.put self.i, x-lw/2, w.h-y-lh/2  # is this y => flip?
+    w.put self.i, x-lw/2, y-lh/2
   end
 
   def char_is_solution
