@@ -1,29 +1,29 @@
 require 'minitest/autorun'
 
-YAHTZEE        = 50
-FULL_STRAIGHT  = 40
-SMALL_STRAIGHT = 30
-FULL_HOUSE     = 25
-FULL_REGEX     = /12345|23456/
-SMAL_REGEX     = /1234|2345|3456/
+YAHTZEE         = 50
+LARGE_STRAIGHT  = 40
+SMALL_STRAIGHT  = 30
+FULL_HOUSE      = 25
+LARGE_REGEX     = /12345|23456/
+SMALL_REGEX     = /1234|2345|3456/
 
-def yahtzee toss
-  groupy = toss.group_by{|x|x}.values
+def yahtzee roll
+  numbers, groups = roll.group_by{|x|x}.sort.transpose
 
-  chance = toss.reduce(&:+)
-  freaky = case groupy.size
-            when 5, 4
-              case toss.uniq.sort.join
-              when FULL_REGEX then FULL_STRAIGHT
-              when SMAL_REGEX then SMALL_STRAIGHT
-              end
-            when 2
-              FULL_HOUSE if groupy.max_by(&:size).count == 3
-            when 1
-              YAHTZEE
-            end.to_i
+  special_score   = case numbers.count
+                    when 5, 4
+                      case numbers.join
+                      when LARGE_REGEX then LARGE_STRAIGHT
+                      when SMALL_REGEX then SMALL_STRAIGHT
+                      end
+                    when 2
+                      FULL_HOUSE if groups.map(&:size).max == 3
+                    when 1
+                      YAHTZEE
+                    end.to_i
+  chance_score = roll.reduce(&:+)
 
-  [freaky, chance].max
+  [special_score, chance_score].max
 end
 
 5.times do
