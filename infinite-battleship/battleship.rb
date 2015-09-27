@@ -1,13 +1,13 @@
 require 'minitest/autorun'
 
 class Grid
-  attr_accessor :locations
+  attr_reader :locations
   def initialize
     @locations = []
   end
 
-  def push coord
-    @locations << coord
+  def add coords
+    @locations += coords
   end
 end
 
@@ -18,7 +18,7 @@ class Ship
             Destroyer:  3,
             PatrolBoat: 2 }
 
-  attr_accessor :size
+  attr_reader :name, :size
 
   def initialize type, grid
     @name = type.to_s
@@ -26,17 +26,16 @@ class Ship
     @grid = grid
   end
 
-  def fix_position(x, y)
-    coord = [x, y]
-    @grid.push(coord) unless @grid.locations.include?(coord)
+  def add(coordinates)
+    @grid.add coordinates if (@grid.locations & coordinates).empty?
   end
 
   def anchor_horizontally_starting_at(x, y)
-    (0...@size).all? {|i| fix_position(x+i, y) }
+    add (0...@size).map {|i| [x+i, y] }
   end
 
   def anchor_vertically_starting_at(x, y)
-    (0...@size).all? {|i| fix_position(x, y+i) }
+    add (0...@size).map {|i| [x, y+i] }
   end
 
   def position
@@ -55,7 +54,10 @@ class CanvasTest < Minitest::Test
   end
 
   def test_shipwright
-    assert_equal [5, 4, 3, 3, 2], [@ac, @bt, @sm, @ds, @pb].map(&:size)
+    assert_equal [5, 4, 3, 3, 2],
+                 [@ac, @bt, @sm, @ds, @pb].map(&:size)
+    assert_equal %w(Aircraft Battleship Submarine Destroyer PatrolBoat),
+                 [@ac, @bt, @sm, @ds, @pb].map(&:name)
   end
 
   def test_positioning_horizontally
@@ -70,12 +72,14 @@ class CanvasTest < Minitest::Test
 
   def test_dont_anchor_if_already_occupying_space
     @ac.anchor_horizontally_starting_at(100, 100)
-    refute @pb.anchor_vertically_starting_at(100, 100)
+    refute @sm.anchor_vertically_starting_at(100, 100)
+    assert_equal 5, @g.locations.size
   end
 
   def test_dont_anchor_if_collision
     @ac.anchor_horizontally_starting_at(100, 100)
     refute @sm.anchor_vertically_starting_at(103, 98)
+    assert_equal 5, @g.locations.size
   end
 
   def test_anchor_circling_the_wagons_is_ok
