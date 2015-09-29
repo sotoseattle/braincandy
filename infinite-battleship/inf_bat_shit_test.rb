@@ -2,25 +2,27 @@ require 'minitest/autorun'
 require './battleship.rb'
 
 class InfBatShitTest < Minitest::Test
-  def setup
-    @game =  InfBatShit.new
-  end
 
-  def test_create_new_game_resets_canvas_for_2_players
-    assert_empty @game.skynet.grid.fill
-    assert_empty @game.skynet.grid.fill
-    assert_empty @game.player.fleet
-    assert_empty @game.player.fleet
-  end
-
-  def test_start_new_game_populates_all_AI_ships
-    1_000.times do
-      game =  InfBatShit.new(10).start!
-      assert_equal Ship::FLEET.values.reduce(&:+), game.skynet.grid.fill.count
-      # puts game.skynet.grid
-      # puts "-------\n"
+  def test_game_quits_when_prompted
+    game =  InfBatShit.new(10)
+    game.stub(:get_input, "exit") do
+      assert_equal 'adios', game.start!
     end
   end
 
+  def test_is_over_when_nothing_floats
+    game =  InfBatShit.new(10)
+    game.skynet.stub(:drop_anchor, nil) do
+      assert_equal 'GAME OVER', game.start!
+    end
+  end
+
+  def test_a_whole_game
+    @@chucho = ([*0...10].permutation(2).to_a +
+                [*0...10].zip([*0...10])).map!{|a| a.join(', ')}
+    game =  InfBatShit.new(10)
+    def game.get_input; @@chucho.shift.to_s; end
+    assert_equal 'GAME OVER', game.start!
+  end
 
 end

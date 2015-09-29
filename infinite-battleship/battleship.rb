@@ -1,101 +1,99 @@
 class InfBatShit
-  attr_reader :skynet, :player
+  FLEET = { Aircraft: 5, Battleship: 4, Submarine: 3, Destroyer: 3, PatrolBoat: 2 }
+
+  attr_accessor :skynet, :player
+
   def initialize side = 100
     @skynet = Player.new side
     @player = Player.new side
   end
 
   def start!
-    @skynet.hide_the_fleet
-    # go_on = true
-    # while go_on do
-    #   instruction = get_input
-    #   go_on = false if instruction == 'exit'
-    # end
-    self
+    @skynet.drop_anchor
+    while @skynet.afloat.size > 0 do
+      puts "Enter target: "
+      command = get_input
+      return 'adios' if command == 'exit'
+      puts @skynet.fire(command.match(/(\d+)\,\s*(\d+)/).captures)
+    end
+    'GAME OVER'
   end
 
   def get_input
     gets.chomp
   end
-
 end
 
 class Player
-  attr_reader :grid, :fleet
-  def initialize side
-    @grid = Grid.new side
-    @fleet = []
-  end
+  attr_accessor :grid, :side
 
-  def random_placement
-    [[:horizontally_from, :vertically_from].sample, rand(@grid.side), rand(@grid.side)]
-  end
-
-  def hide_the_fleet formation = %w(Aircraft Battleship Submarine Destroyer PatrolBoat)
-    @fleet = formation.map { |name| Ship.new(name.to_sym, @grid) }
-    @fleet.each do |boat|
-      until boat.send(*random_placement) do
-      end
-    end
-  end
-end
-
-class Grid
-  attr_reader :side, :fill
-  def initialize side
+  def initialize side = 100
     @side = side
-    @fill = []
+    @grid = {}
   end
 
-  def add coords
-    @fill += coords
+  def afloat
+    @grid.values.flatten(1)
   end
 
-  def inside? coords
-    a, b = coords.transpose
-    a.max < @side && b.max < @side
-  end
-
-  def to_s
-    (0...side).map do |y|
-      (0...side).map do |x|
-        @fill.include?([x,y]) ? "X|" : " |"
-      end.join << "\n"
-    end.reverse.join
-  end
-end
-
-class Ship
-  FLEET = { Aircraft:   5,
-            Battleship: 4,
-            Submarine:  3,
-            Destroyer:  3,
-            PatrolBoat: 2 }
-
-  attr_reader :name, :size, :grid
-
-  def initialize type, grid
-    @name = type.to_s
-    @size = FLEET[type]
-    @grid = grid
-  end
-
-  def add(coordinates)
-    if @grid.inside?(coordinates) && (@grid.fill & coordinates).empty?
-      @grid.add(coordinates)
+  def add_to_grid(coords, ship_type)
+    if inside_bounds?(coords) && no_collisions?(coords)
+      @grid[ship_type] = coords
     else
       false
     end
   end
 
-  def horizontally_from(x, y)
-    add (0...@size).map {|i| [x+i, y] }
+  def drop_anchor fleet = InfBatShit::FLEET
+    fleet.map { |s, z| Ship.new(s.to_sym, z, self) }.each do |boat|
+      until boat.send(*random_placement) do
+      end
+    end
   end
 
-  def vertically_from(x, y)
-    add (0...@size).map {|i| [x, y+i] }
+  def fire coord
+    coord.map! &:to_i
+    ship, set = @grid.select { |ship, set| set.include? coord }.first
+    if ship
+      @grid[ship] = (set -= [coord])
+      (set.empty? ? "Sunk" : "Hit") + " my #{ship}\n"
+    else
+      "Splash"
+    end
+  end
+
+  private
+
+  def inside_bounds? coords
+    a, b = coords.transpose
+    a.max < @side && b.max < @side
+  end
+
+  def no_collisions? coords
+    (afloat & coords).empty?
+  end
+
+  def random_placement
+    [[:horizontally_from, :vertically_from].sample, rand(@side), rand(@side)]
   end
 end
 
-# InfBatShit.new.start!
+class Ship
+  attr_reader :name, :size, :grid
+
+  def initialize type, size, player
+    @name = type.to_s
+    @size = size
+    @player = player
+  end
+
+  def horizontally_from(x, y)
+    @player.add_to_grid((0...@size).map {|i| [x+i, y] }, @name)
+  end
+
+  def vertically_from(x, y)
+    @player.add_to_grid((0...@size).map {|i| [x, y+i] }, @name)
+  end
+end
+
+# InfBatShit.new(10).start!
