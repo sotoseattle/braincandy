@@ -1,20 +1,22 @@
 class InfBatShit
-  FLEET = { Aircraft: 5, Battleship: 4, Submarine: 3, Destroyer: 3, PatrolBoat: 2 }
+  FLEET = { 'Aircraft'  => 5, 'Battleship' => 4, 'Submarine' => 3,
+            'Destroyer' => 3, 'PatrolBoat' => 2 }
 
-  attr_accessor :skynet, :player
+  attr_accessor :grid, :side
 
-  def initialize side = 100
-    @skynet = Player.new side
-    @player = Player.new side
+  def initialize(side = 10)
+    @side = side
+    @grid = {}
   end
 
   def start!
-    @skynet.drop_anchor
-    while @skynet.afloat.size > 0 do
+    drop_anchor
+    while afloat.size > 0 do
       puts "Enter target: "
-      command = get_input
-      return 'adios' if command == 'exit'
-      puts @skynet.fire(command.match(/(\d+)\,\s*(\d+)/).captures)
+      case get_input
+      when 'exit' then return 'adios'
+      when /(\d+)\,\s*(\d+)/ then puts fire([$1, $2])
+      end
     end
     'GAME OVER'
   end
@@ -22,36 +24,24 @@ class InfBatShit
   def get_input
     gets.chomp
   end
-end
-
-class Player
-  attr_accessor :grid, :side
-
-  def initialize side = 100
-    @side = side
-    @grid = {}
-  end
 
   def afloat
     @grid.values.flatten(1)
   end
 
-  def add_to_grid(coords, ship_type)
-    if inside_bounds?(coords) && no_collisions?(coords)
-      @grid[ship_type] = coords
-    else
-      false
+  def add_to_grid(boat)
+    coords = boat.random_placement_at(rand(@side), rand(@side))
+    valid?(coords) ? @grid[boat.name] = coords : false
+  end
+
+  def drop_anchor(fleet = InfBatShit::FLEET)
+    fleet.map do |s, z|
+      boat = Ship.new(s, z)
+      redo unless add_to_grid(boat)
     end
   end
 
-  def drop_anchor fleet = InfBatShit::FLEET
-    fleet.map { |s, z| Ship.new(s.to_sym, z, self) }.each do |boat|
-      until boat.send(*random_placement) do
-      end
-    end
-  end
-
-  def fire coord
+  def fire(coord)
     coord.map! &:to_i
     ship, set = @grid.select { |ship, set| set.include? coord }.first
     if ship
@@ -62,38 +52,22 @@ class Player
     end
   end
 
-  private
-
-  def inside_bounds? coords
+  def valid?(coords)
     a, b = coords.transpose
-    a.max < @side && b.max < @side
-  end
-
-  def no_collisions? coords
-    (afloat & coords).empty?
-  end
-
-  def random_placement
-    [[:horizontally_from, :vertically_from].sample, rand(@side), rand(@side)]
+    a.max < @side && b.max < @side && (afloat & coords).empty?
   end
 end
 
-class Ship
-  attr_reader :name, :size, :grid
-
-  def initialize type, size, player
-    @name = type.to_s
-    @size = size
-    @player = player
+Ship = Struct.new(:name, :size) do
+  def random_placement_at(x, y)
+    send([:horizontally, :vertically].sample, x, y)
   end
 
-  def horizontally_from(x, y)
-    @player.add_to_grid((0...@size).map {|i| [x+i, y] }, @name)
+  def horizontally(x, y)
+    (0...size).map {|i| [x+i, y] }
   end
 
-  def vertically_from(x, y)
-    @player.add_to_grid((0...@size).map {|i| [x, y+i] }, @name)
+  def vertically(x, y)
+    (0...size).map {|i| [x, y+i] }
   end
 end
-
-# InfBatShit.new(10).start!
